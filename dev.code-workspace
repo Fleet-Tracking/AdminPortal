@@ -39,6 +39,7 @@
 			"firstname",
 			"fullname",
 			"lastname",
+			"Recaptcha",
 			"Vuex"
 		],
 		"editor.renameOnType": true

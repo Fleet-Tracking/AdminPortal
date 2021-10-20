@@ -1,40 +1,26 @@
 <template>
-  <div class="home">
-    <Navbar />
-    <h1>{{ exampleVar }} Vue Boilerplates</h1>
-    <h3>vue-typescript-boilerplate</h3>
-    <img width="130px" height="auto" alt="" src="/img/vue-boilerplates.svg" />
-    <h3>Vue + Typescript + Lazy loading and code splitting</h3>
-    <div class="block">
-      <h2>Why Vue Boilerplates?</h2>
-      <p>
-        While mobile-first approach becomes a standard and uncertain network
-        conditions are something we should always take into consideration, it’s
-        harder and harder to keep your application loading fast. Vue
-        Boilerplates was built with vue.js performance optimization techniques
-        that make them loading instantly and perform smooth 🚀.
-      </p>
-    </div>
-    <div class="block">
-      <h2>Lets grow together!</h2>
-      <h3>Please consider becoming a donor 🙏.</h3>
-      <p>
-        Make a custom one time or recurring contribution to support my open
-        source projects
-      </p>
-      <a
-        class="donate-btn"
-        target="_blank"
-        href="https://opencollective.com/vue-boilerplates"
-        >Donate
-      </a>
-    </div>
-  </div>
+  <b-container>
+    <b-row>
+      <b-col v-if="!gotConfirmation"> Enter Phone number </b-col>
+      <b-col v-else> Enter OTP </b-col>
+    </b-row>
+    <b-row>
+      <b-input v-if="!gotConfirmation" v-model="phoneNumber" />
+      <b-input v-else v-model="otp" />
+    </b-row>
+    <b-row
+      ><b-button id="sign-in-button" @click="handleSubmit"
+        >Submit</b-button
+      ></b-row
+    >
+  </b-container>
 </template>
 
 <script lang="ts">
-import { Vue, Component } from "vue-property-decorator";
+import { Component } from "vue-property-decorator";
 import Navbar from "@/components/Navbar.vue";
+import AuthHandler from "@/utils/authHandler";
+import { mixins } from "vue-class-component";
 
 @Component({
   name: "Home",
@@ -42,45 +28,45 @@ import Navbar from "@/components/Navbar.vue";
     Navbar,
   },
 })
-export default class Home extends Vue {
-  private exampleVar: ExampleTypeDefinition = "Hello";
+export default class Home extends mixins(AuthHandler) {
+  private phoneNumber = "";
+  private otp = "";
+
+  private gotConfirmation = false;
+
+  private handleSubmit() {
+    if (this.gotConfirmation) {
+      this.submitOTP();
+    } else {
+      this.loginToFirebase();
+    }
+  }
+
+  private loginToFirebase() {
+    this.login(this.phoneNumber)
+      .then((confirm) => {
+        if (confirm) this.gotConfirmation = true;
+      })
+      .catch((err) => console.error(err));
+  }
+
+  private submitOTP() {
+    if (this.otp) this.confirm(this.otp).then(() => this.gotoHome());
+  }
+
+  mounted(): void {
+    this.isAlreadyLogged().then((val) => {
+      if (val) {
+        this.gotoHome();
+      }
+    });
+  }
+
+  private gotoHome() {
+    this.$router.replace("/home");
+  }
 }
 </script>
 
 <style scoped>
-.block {
-  margin: 3rem 2rem 3rem 2rem;
-}
-h1,
-h2 {
-  margin: 0;
-}
-h3 {
-  margin-top: 0.5rem;
-}
-img {
-  margin-bottom: 1rem;
-}
-.donate-btn {
-  display: inline-block;
-  font-weight: 400;
-  text-align: center;
-  vertical-align: middle;
-  color: #fff;
-  background-color: #1e7e34;
-  border-color: #1c7430;
-  cursor: pointer;
-  user-select: none;
-  border: 1px solid transparent;
-  padding: 0.375rem 0.75rem;
-  font-size: 1rem;
-  line-height: 1.5;
-  border-radius: 0.25rem;
-  text-decoration: none;
-}
-.donate-btn:hover {
-  color: #fff;
-  background-color: #218838;
-  border-color: #1e7e34;
-}
 </style>
