@@ -1,5 +1,5 @@
 <template>
-  <div id="app">
+  <div>
     <router-view />
   </div>
 </template>
@@ -15,7 +15,7 @@ import { firebaseConfig } from "./utils/constants";
   name: "App",
 })
 export default class App extends Vue {
-  mounted(): void {
+  created(): void {
     vxm.firebase.app = initializeApp(firebaseConfig);
     vxm.firebase.db = getDatabase(vxm.firebase.app);
   }
