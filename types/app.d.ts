@@ -1,5 +1,5 @@
 interface UserDetails {
-  role: 'DELIVERY' | 'ADMIN',
+  role: 'DELIVERY' | 'ADMIN' | 'USER',
   phone: string
 }
 interface UserDetailsExtended extends UserDetails {

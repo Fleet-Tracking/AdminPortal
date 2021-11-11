@@ -31,9 +31,7 @@ import { mixins } from "vue-class-component";
 export default class Home extends mixins(AuthHandler) {
   private phoneNumber = "";
   private otp = "";
-
   private gotConfirmation = false;
-
   private handleSubmit() {
     if (this.gotConfirmation) {
       this.submitOTP();
@@ -41,7 +39,6 @@ export default class Home extends mixins(AuthHandler) {
       this.loginToFirebase();
     }
   }
-
   private loginToFirebase() {
     this.login(this.phoneNumber)
       .then((confirm) => {
@@ -49,11 +46,9 @@ export default class Home extends mixins(AuthHandler) {
       })
       .catch((err) => console.error(err));
   }
-
   private submitOTP() {
     if (this.otp) this.confirm(this.otp).then(() => this.gotoHome());
   }
-
   mounted(): void {
     this.isAlreadyLogged().then((val) => {
       if (val) {
@@ -61,7 +56,6 @@ export default class Home extends mixins(AuthHandler) {
       }
     });
   }
-
   private gotoHome() {
     this.$router.replace("/home");
   }
