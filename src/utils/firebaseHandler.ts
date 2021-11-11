@@ -1,15 +1,19 @@
 import { vxm } from "@/store";
 import { get, push, set } from "@firebase/database";
-import { getAuth } from "firebase/auth";
+import { Auth, getAuth } from "firebase/auth";
 import { DatabaseReference, ref } from "firebase/database";
 import { Vue, Component } from "vue-property-decorator";
 
 @Component
 export default class FirebaseHandler extends Vue {
-  private auth = getAuth(vxm.firebase.app)
+  private auth: Auth | undefined
+
+  created(): void {
+    this.auth = getAuth(vxm.firebase.app)
+  }
 
   private get currentUser() {
-    return this.auth.currentUser
+    return this.auth?.currentUser
   }
 
   private getReference(path: string): DatabaseReference | undefined {
@@ -32,17 +36,17 @@ export default class FirebaseHandler extends Vue {
   protected async isAlreadyLogged(): Promise<boolean> {
     return new Promise(resolve => {
 
-      if (this.auth.currentUser) {
+      if (this.auth?.currentUser) {
         resolve(true)
         return
       }
-      this.auth.onAuthStateChanged((user) => {
+      this.auth?.onAuthStateChanged((user) => {
         resolve(!!user)
       })
     })
   }
 
-  protected async getAllDelivery(): Promise<UserDetailsExtended[]> {
+  protected async getAllUsers(type: 'USER' | 'DELIVERY'): Promise<UserDetailsExtended[]> {
     const final: UserDetailsExtended[] = []
     const ref = this.getReference('/users')
     if (ref) {
@@ -50,8 +54,7 @@ export default class FirebaseHandler extends Vue {
       if (data) {
         const parsed = data.val() as { [key: string]: UserDetails }
         for (const [key, val] of Object.entries(parsed)) {
-          if (val.role === 'DELIVERY') {
-
+          if (val.role === type) {
             final.push({ ...val, uid: key })
           }
         }
@@ -60,12 +63,21 @@ export default class FirebaseHandler extends Vue {
     return final
   }
 
-  protected async setDeliveryData(user: UserDetailsExtended, lat: number, lng: number): Promise<void> {
-    const ref = this.getReference(`/delivery/${user.uid}`)
+  protected async setDeliveryData(delivery: UserDetailsExtended, user: UserDetailsExtended, lat: number, lng: number): Promise<void> {
+    const ref = this.getReference(`/delivery/${delivery.uid}`)
     if (ref) {
-      return set(push(ref), {
-        lat, lng
+      const orderRef = push(ref)
+      await set(orderRef, {
+        lat, lng, user: user.uid
       })
+
+      const userRef = this.getReference(`/receiver/${user.uid}`)
+      if (userRef) {
+        await set(push(userRef), {
+          delivery: delivery.uid,
+          order: orderRef.key
+        })
+      }
     }
   }
 }
